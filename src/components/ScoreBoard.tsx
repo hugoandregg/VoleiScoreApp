@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, PanResponder } from 'react-native';
+import { View, Text, Pressable, StyleSheet, PanResponder, Platform } from 'react-native';
 import { GameStateEnum } from '../Main';
 
 interface Props {
@@ -63,10 +63,18 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   score: {
-    fontSize: 240,
+    fontSize: 380,
     color: 'white',
-    fontWeight: 'bold',
-    fontFamily: 'Rajdhani-Bold',
+    fontFamily: Platform.select({
+      ios: 'Rajdhani-Bold',
+      android: 'Rajdhani-Bold',
+      default: 'sans-serif',
+    }),
+    fontWeight: Platform.select({
+      ios: 'bold',
+      android: 'normal', // Remove fontWeight for Android when using bold font file
+      default: 'bold',
+    }),
     textShadowColor: 'rgba(0, 0, 0, 0.7)', // cor da sombra (preta com transparência)
     textShadowOffset: { width: 4, height: 4 }, // deslocamento da sombra
     textShadowRadius: 3,
