@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, PanResponder, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  PanResponder,
+  Platform,
+} from 'react-native';
 import { GameStateEnum } from '../Main';
 
 interface Props {
@@ -30,17 +37,17 @@ export function ScoreBoard({
     },
   });
 
-  const getTextColor = (): string => {
-    if (gameState === 'ON_DISPUTE') return '#E6B800'; // amarelo
+  const getBackgroundColor = (): string => {
+    if (gameState === 'ON_DISPUTE') return '#FF8C00';
     if (gameState === 'FINISHED') {
-      return isWinner ? '#4CAF50' : '#444'; // verde ou cinza
+      return isWinner ? '#4CAF50' : '#444';
     }
-    return color; // cor original do time
+    return color;
   };
 
   return (
     <View
-      style={[styles.container, { backgroundColor: getTextColor() }]}
+      style={[styles.container, { backgroundColor: getBackgroundColor() }]}
       {...panResponder.panHandlers}
     >
       <Pressable style={styles.pressArea} onPress={onIncrement}>
