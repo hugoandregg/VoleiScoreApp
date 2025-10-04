@@ -1,4 +1,4 @@
-package com.voleiscoreapp
+package com.hugogalvao.matchpoint
 
 import android.app.Application
 import com.facebook.react.PackageList
