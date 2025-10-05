@@ -285,19 +285,24 @@ const getCenterControlsStyle = (
 } => ({
   container: {
     position: 'absolute',
-    top: isLandscape ? height / 2 - 60 : '50%',
-    left: isLandscape ? width / 2 - 30 : 0,
-    width: isLandscape ? undefined : '100%',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    transform: isLandscape ? [] : [{ translateY: -30 }], // ajusta verticalmente para ficar centralizado
     zIndex: 2,
+    pointerEvents: 'box-none', // Allow touches to pass through to scoreboard areas
   },
   buttons: {
     flexDirection: isLandscape ? 'column' : 'row',
     gap: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.1)', // Subtle background for visibility
+    borderRadius: 20,
+    padding: 8,
+    pointerEvents: 'auto', // Enable touches for buttons
   },
 });
 
