@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -26,6 +26,7 @@ export default function Main() {
   const [scoreRed, setScoreRed] = useState(0);
   const [scoreBlue, setScoreBlue] = useState(0);
   const [finishScore, setFinishScore] = useState(15);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const { height, width } = useWindowDimensions();
   const [gameState, setGameState] = useState<GameStateEnum>(
@@ -33,13 +34,34 @@ export default function Main() {
   );
 
   const [showDrawer, setShowDrawer] = useState(false);
-  const [newFinishScore, setNewFinishScore] = useState(String(finishScore));
+  const [newFinishScore, setNewFinishScore] = useState('');
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      },
+    );
+
+    return () => {
+      keyboardDidHideListener?.remove();
+      keyboardDidShowListener?.remove();
+    };
+  }, []);
 
   const handleSaveFinishScore = () => {
     const parsed = parseInt(newFinishScore, 10);
     if (!isNaN(parsed) && parsed > 0) {
       setFinishScore(parsed);
     }
+    setNewFinishScore(''); // Reset the input
     setShowDrawer(false);
   };
 
@@ -230,17 +252,26 @@ export default function Main() {
       />
 
       {showDrawer && (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.drawer}
+        <View
+          style={[
+            styles.drawer,
+            {
+              bottom: keyboardHeight,
+              height: Math.min(height * 0.6, height - keyboardHeight - 100),
+            },
+          ]}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView
               contentContainerStyle={styles.drawerContent}
               keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
             >
               <TouchableOpacity
-                onPress={() => setShowDrawer(false)}
+                onPress={() => {
+                  setNewFinishScore(''); // Reset input when closing
+                  setShowDrawer(false);
+                }}
                 style={styles.closeButton}
               >
                 <Icon name="close" size={24} color="#fff" />
@@ -250,10 +281,12 @@ export default function Main() {
               <TextInput
                 style={styles.input}
                 keyboardType="number-pad"
-                placeholder="Pontuação Final"
+                placeholder={`${finishScore}`}
                 placeholderTextColor="#aaa"
                 value={newFinishScore}
                 onChangeText={setNewFinishScore}
+                autoFocus={true}
+                selectTextOnFocus={true}
               />
               <TouchableOpacity
                 style={styles.saveButton}
@@ -263,7 +296,7 @@ export default function Main() {
               </TouchableOpacity>
             </ScrollView>
           </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
+        </View>
       )}
     </View>
   );
@@ -352,14 +385,12 @@ const styles = StyleSheet.create({
   },
   drawer: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
-    height: '55%',
     backgroundColor: '#222',
     padding: 16,
     elevation: 5,
-    zIndex: 1,
+    zIndex: 10,
     shadowColor: '#000',
     shadowOpacity: 0.4,
     shadowOffset: { width: 0, height: -2 },
