@@ -6,13 +6,12 @@ import {
   ViewStyle,
   TouchableOpacity,
   TextInput,
-  DimensionValue,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
   ScrollView,
   Keyboard,
+  Text,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ScoreBoard } from './components/ScoreBoard';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -21,6 +20,8 @@ export enum GameStateEnum {
   ON_DISPUTE = 'ON_DISPUTE',
   FINISHED = 'FINISHED',
 }
+
+const FINISH_SCORE_STORAGE_KEY = 'match_point_finish_score';
 
 export default function Main() {
   const [scoreRed, setScoreRed] = useState(0);
@@ -36,10 +37,34 @@ export default function Main() {
   const [showDrawer, setShowDrawer] = useState(false);
   const [newFinishScore, setNewFinishScore] = useState('');
 
+  const loadFinishScore = async () => {
+    try {
+      const savedScore = await AsyncStorage.getItem(FINISH_SCORE_STORAGE_KEY);
+      if (savedScore !== null) {
+        const parsed = parseInt(savedScore, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          setFinishScore(parsed);
+        }
+      }
+    } catch (error) {
+      console.log('Error loading finish score:', error);
+    }
+  };
+
+  const saveFinishScore = async (score: number) => {
+    try {
+      await AsyncStorage.setItem(FINISH_SCORE_STORAGE_KEY, score.toString());
+    } catch (error) {
+      console.log('Error saving finish score:', error);
+    }
+  };
+
   useEffect(() => {
+    loadFinishScore();
+
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
-      (e) => {
+      e => {
         setKeyboardHeight(e.endCoordinates.height);
       },
     );
@@ -56,12 +81,13 @@ export default function Main() {
     };
   }, []);
 
-  const handleSaveFinishScore = () => {
+  const handleSaveFinishScore = async () => {
     const parsed = parseInt(newFinishScore, 10);
-    if (!isNaN(parsed) && parsed > 0) {
+    if (!isNaN(parsed) && parsed > 1) {
       setFinishScore(parsed);
+      await saveFinishScore(parsed);
     }
-    setNewFinishScore(''); // Reset the input
+    setNewFinishScore('');
     setShowDrawer(false);
   };
 
@@ -208,7 +234,7 @@ export default function Main() {
     }
   };
 
-  const centerStyles = getCenterControlsStyle(isLandscape, width, height);
+  const centerStyles = getCenterControlsStyle(isLandscape);
 
   return (
     <View
@@ -269,7 +295,7 @@ export default function Main() {
             >
               <TouchableOpacity
                 onPress={() => {
-                  setNewFinishScore(''); // Reset input when closing
+                  setNewFinishScore('');
                   setShowDrawer(false);
                 }}
                 style={styles.closeButton}
@@ -278,6 +304,7 @@ export default function Main() {
               </TouchableOpacity>
 
               <Icon name="sports-volleyball" size={40} color="#fff" />
+              <Text style={styles.drawerTitle}>Pontuação final</Text>
               <TextInput
                 style={styles.input}
                 keyboardType="number-pad"
@@ -302,16 +329,8 @@ export default function Main() {
   );
 }
 
-const getDividerStyle = (isLandscape: boolean): ViewStyle => ({
-  width: isLandscape ? 2 : '100%',
-  height: isLandscape ? '100%' : 2,
-  backgroundColor: 'white',
-});
-
 const getCenterControlsStyle = (
   isLandscape: boolean,
-  width: number,
-  height: number,
 ): {
   container: ViewStyle;
   buttons: ViewStyle;
@@ -325,17 +344,17 @@ const getCenterControlsStyle = (
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
-    pointerEvents: 'box-none', // Allow touches to pass through to scoreboard areas
+    pointerEvents: 'box-none',
   },
   buttons: {
     flexDirection: isLandscape ? 'column' : 'row',
     gap: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.1)', // Subtle background for visibility
+    backgroundColor: 'rgba(0,0,0,0.1)',
     borderRadius: 20,
     padding: 8,
-    pointerEvents: 'auto', // Enable touches for buttons
+    pointerEvents: 'auto',
   },
 });
 
@@ -403,6 +422,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 20,
+  },
+  drawerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: -5,
   },
   input: {
     borderWidth: 1,
